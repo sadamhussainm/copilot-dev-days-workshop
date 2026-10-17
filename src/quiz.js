@@ -21,6 +21,37 @@ function isCorrect(question, selectedIndex) {
   return question.answer === selectedIndex;
 }
 
+function createQuiz(questions) {
+  return {
+    questions: [...questions],
+    current: 0,
+    score: 0,
+  };
+}
+
+function answerQuestion(state, selectedIndex) {
+  const question = state.questions[state.current];
+  const correct = question ? isCorrect(question, selectedIndex) : false;
+  return {
+    state: {
+      ...state,
+      score: state.score + (correct ? 1 : 0),
+    },
+    correct,
+  };
+}
+
+function advanceQuiz(state) {
+  return {
+    ...state,
+    current: Math.min(state.current + 1, state.questions.length),
+  };
+}
+
+function isQuizFinished(state) {
+  return state.current >= state.questions.length;
+}
+
 /**
  * Converts a score into a whole-number percentage (0-100).
  */
@@ -40,6 +71,12 @@ function getGrade(percentage) {
   return "Keep practicing";
 }
 
+function getFeedbackMessage(isCorrectAnswer) {
+  return isCorrectAnswer === true
+    ? "Correct!"
+    : "Not quite. The correct answer is highlighted.";
+}
+
 /**
  * Formats a remaining countdown value for display.
  */
@@ -50,5 +87,16 @@ function formatTimeLeft(seconds) {
 
 // Lets Node.js tests load this file. Browsers ignore this block.
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { shuffle, isCorrect, calculatePercentage, getGrade, formatTimeLeft };
+  module.exports = {
+    shuffle,
+    isCorrect,
+    createQuiz,
+    answerQuestion,
+    advanceQuiz,
+    isQuizFinished,
+    calculatePercentage,
+    getGrade,
+    getFeedbackMessage,
+    formatTimeLeft,
+  };
 }

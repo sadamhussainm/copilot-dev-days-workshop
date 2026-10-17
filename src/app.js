@@ -1,14 +1,10 @@
 // UI code: connects the quiz logic (quiz.js) to the page (index.html).
 
-const state = {
-  questions: [],
-  current: 0,
-  score: 0,
-  timerId: null,
-  timerToken: 0,
-  timerDeadline: 0,
-  questionResolved: false,
-};
+let state = createQuiz([]);
+let timerId = null;
+let timerToken = 0;
+let timerDeadline = 0;
+let questionResolved = false;
 
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
@@ -29,21 +25,21 @@ function showScreen(screenToShow) {
 }
 
 function stopQuestionTimer() {
-  if (state.timerId !== null) {
-    clearInterval(state.timerId);
-    state.timerId = null;
+  if (timerId !== null) {
+    clearInterval(timerId);
+    timerId = null;
   }
 }
 
 function updateQuestionTimer(token) {
-  if (token !== state.timerToken || state.questionResolved) return;
+  if (token !== timerToken || questionResolved) return;
 
-  const secondsLeft = Math.max(0, Math.ceil((state.timerDeadline - Date.now()) / 1000));
+  const secondsLeft = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
   timerText.textContent = formatTimeLeft(secondsLeft);
   timerText.classList.toggle("low-time", secondsLeft <= 5);
 
   if (secondsLeft === 0) {
-    state.questionResolved = true;
+    questionResolved = true;
     stopQuestionTimer();
 
     const question = state.questions[state.current];
@@ -57,20 +53,18 @@ function updateQuestionTimer(token) {
 }
 
 function startQuestionTimer() {
-  state.timerToken++;
-  state.questionResolved = false;
-  state.timerDeadline = Date.now() + 15000;
-  const token = state.timerToken;
+  timerToken++;
+  questionResolved = false;
+  timerDeadline = Date.now() + 15000;
+  const token = timerToken;
   updateQuestionTimer(token);
-  state.timerId = setInterval(() => updateQuestionTimer(token), 250);
+  timerId = setInterval(() => updateQuestionTimer(token), 250);
 }
 
 function startQuiz() {
   stopQuestionTimer();
-  state.timerToken++;
-  state.questions = shuffle(QUESTIONS);
-  state.current = 0;
-  state.score = 0;
+  timerToken++;
+  state = createQuiz(shuffle(QUESTIONS));
   showScreen(quizScreen);
   renderQuestion();
 }
@@ -99,27 +93,28 @@ function renderQuestion() {
 }
 
 function selectAnswer(selectedIndex, selectedButton) {
-  if (state.questionResolved) return;
-  if (Date.now() >= state.timerDeadline) {
-    updateQuestionTimer(state.timerToken);
+  if (questionResolved) return;
+  if (Date.now() >= timerDeadline) {
+    updateQuestionTimer(timerToken);
     return;
   }
-  state.questionResolved = true;
+  questionResolved = true;
   stopQuestionTimer();
 
   const question = state.questions[state.current];
   const buttons = optionsList.querySelectorAll("button");
   buttons.forEach((button) => (button.disabled = true));
+  const result = answerQuestion(state, selectedIndex);
+  state = result.state;
+  const correct = result.correct;
 
-  if (isCorrect(question, selectedIndex)) {
-    state.score++;
+  if (correct) {
     selectedButton.classList.add("correct");
-    feedbackText.textContent = "Correct!";
   } else {
     selectedButton.classList.add("wrong");
     buttons[question.answer].classList.add("correct");
-    feedbackText.textContent = "Not quite. The correct answer is highlighted.";
   }
+  feedbackText.textContent = getFeedbackMessage(correct);
 
   nextButton.hidden = false;
   nextButton.focus();
@@ -127,8 +122,8 @@ function selectAnswer(selectedIndex, selectedButton) {
 
 function nextQuestion() {
   stopQuestionTimer();
-  state.current++;
-  if (state.current < state.questions.length) {
+  state = advanceQuiz(state);
+  if (!isQuizFinished(state)) {
     renderQuestion();
   } else {
     showResults();
@@ -137,7 +132,7 @@ function nextQuestion() {
 
 function showResults() {
   stopQuestionTimer();
-  state.timerToken++;
+  timerToken++;
   const total = state.questions.length;
   const percentage = calculatePercentage(state.score, total);
   scoreText.textContent = `You scored ${state.score} out of ${total} (${percentage}%)`;
