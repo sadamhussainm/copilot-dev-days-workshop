@@ -56,6 +56,21 @@ const QUESTIONS = [
     options: ["Runner", "Branch", "Issue", "Action"],
     answer: 3,
   },
+  {
+    question: "Which command shows your current branch and modified files?",
+    options: ["git status", "git log", "git merge", "git clone"],
+    answer: 0,
+  },
+  {
+    question: "Which GitHub feature lets you review code before merging?",
+    options: ["Issue", "Wiki", "Pull request", "Release"],
+    answer: 2,
+  },
+  {
+    question: "What does a GitHub Action typically execute?",
+    options: ["A shell script or command", "A CSS animation", "A database backup", "A file rename"],
+    answer: 0,
+  },
 ];
 
 // Lets Node.js tests load this file. Browsers ignore this block.

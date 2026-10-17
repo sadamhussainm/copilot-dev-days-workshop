@@ -10,6 +10,7 @@ const {
   advanceQuiz,
   isQuizFinished,
   calculatePercentage,
+  isNewBestScore,
   getGrade,
   getFeedbackMessage,
   formatTimeLeft,
@@ -91,6 +92,22 @@ test("calculatePercentage rounds to a whole number", () => {
 
 test("calculatePercentage returns 0 when there are no questions", () => {
   assert.equal(calculatePercentage(0, 0), 0);
+});
+
+test("isNewBestScore returns true when no best score exists", () => {
+  assert.equal(isNewBestScore(0, null), true);
+});
+
+test("isNewBestScore returns true when the current score is higher", () => {
+  assert.equal(isNewBestScore(100, 99), true);
+});
+
+test("isNewBestScore returns false when the current score ties the best", () => {
+  assert.equal(isNewBestScore(67, 67), false);
+});
+
+test("isNewBestScore returns false when the current score is lower", () => {
+  assert.equal(isNewBestScore(0, 100), false);
 });
 
 test("shuffle keeps every item and does not change the original array", () => {

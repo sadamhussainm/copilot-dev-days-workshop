@@ -5,6 +5,8 @@ let timerId = null;
 let timerToken = 0;
 let timerDeadline = 0;
 let questionResolved = false;
+const bestScoreStorageKey = "dev-days-quiz-best-score";
+let bestScore = readBestScore();
 
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
@@ -17,6 +19,33 @@ const feedbackText = document.getElementById("feedback");
 const nextButton = document.getElementById("next-btn");
 const scoreText = document.getElementById("score-text");
 const gradeText = document.getElementById("grade-text");
+const startBestScoreText = document.getElementById("start-best-score");
+const resultBestScoreText = document.getElementById("result-best-score");
+const bestScoreMessage = document.getElementById("best-score-message");
+
+function readBestScore() {
+  try {
+    const storedScore = window.localStorage.getItem(bestScoreStorageKey);
+    if (storedScore === null || !/^(100|[1-9]?\d)$/.test(storedScore)) return null;
+    return Number(storedScore);
+  } catch {
+    return null;
+  }
+}
+
+function saveBestScore(score) {
+  try {
+    window.localStorage.setItem(bestScoreStorageKey, String(score));
+  } catch {
+    return;
+  }
+}
+
+function renderBestScore() {
+  const label = bestScore === null ? "No best score yet" : `Best score: ${bestScore}%`;
+  startBestScoreText.textContent = label;
+  resultBestScoreText.textContent = label;
+}
 
 function showScreen(screenToShow) {
   [startScreen, quizScreen, resultScreen].forEach((screen) => {
@@ -135,11 +164,20 @@ function showResults() {
   timerToken++;
   const total = state.questions.length;
   const percentage = calculatePercentage(state.score, total);
+  const newBest = isNewBestScore(percentage, bestScore);
+  if (newBest) {
+    bestScore = percentage;
+    saveBestScore(bestScore);
+  }
+  renderBestScore();
   scoreText.textContent = `You scored ${state.score} out of ${total} (${percentage}%)`;
   gradeText.textContent = `Grade: ${getGrade(percentage)}`;
+  bestScoreMessage.hidden = !newBest;
+  bestScoreMessage.textContent = newBest ? "New personal best!" : "";
   showScreen(resultScreen);
 }
 
+renderBestScore();
 document.getElementById("start-btn").addEventListener("click", startQuiz);
 document.getElementById("restart-btn").addEventListener("click", startQuiz);
 nextButton.addEventListener("click", nextQuestion);

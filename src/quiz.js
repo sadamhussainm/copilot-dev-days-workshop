@@ -60,6 +60,10 @@ function calculatePercentage(score, total) {
   return Math.round((score / total) * 100);
 }
 
+function isNewBestScore(current, best) {
+  return best === null || current > best;
+}
+
 /**
  * Turns a percentage into a grade.
  * A = 90% or more, B = 75% or more, C = 50% or more.
@@ -95,6 +99,7 @@ if (typeof module !== "undefined" && module.exports) {
     advanceQuiz,
     isQuizFinished,
     calculatePercentage,
+    isNewBestScore,
     getGrade,
     getFeedbackMessage,
     formatTimeLeft,
