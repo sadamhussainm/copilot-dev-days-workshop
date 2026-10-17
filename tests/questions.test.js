@@ -24,3 +24,16 @@ test("question texts are unique", () => {
   const texts = QUESTIONS.map((q) => q.question.trim().toLowerCase());
   assert.equal(new Set(texts).size, texts.length, "two questions have the same text");
 });
+
+test("includes at least 3 GitHub Actions questions", () => {
+  const actionsQuestions = QUESTIONS.filter((q) => {
+    const haystack = [q.question, ...q.options].join(" ").toLowerCase();
+    return /(github actions|workflow|runner|job|action)/.test(haystack);
+  });
+
+  assert.ok(QUESTIONS.length >= 9, `expected at least 9 questions, found ${QUESTIONS.length}`);
+  assert.ok(
+    actionsQuestions.length >= 3,
+    `expected at least 3 GitHub Actions questions, found ${actionsQuestions.length}`
+  );
+});
